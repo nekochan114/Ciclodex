@@ -46,6 +46,73 @@ pointer-events: none;
 z-index: 0;
 }
 
+/* ─── MODO SIN EFECTOS (accesibilidad) ─────────────────────────────── */
+.no-fx *,
+.no-fx *::before,
+.no-fx *::after {
+  animation: none !important;
+  transition: none !important;
+  filter: none !important;
+}
+.no-fx body::before { display: none !important; }
+.no-fx .mascot-img:hover { transform: none !important; }
+
+/* Botón toggle efectos */
+.fx-toggle-btn {
+  position: fixed;
+  bottom: 58px;
+  left: 20px;
+  z-index: 9998;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(10,12,16,0.75);
+  border: 1px solid rgba(139,144,160,0.22);
+  color: rgba(139,144,160,0.6);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.fx-toggle-btn:hover {
+  border-color: rgba(139,144,160,0.5);
+  color: var(--text-primary);
+  background: rgba(139,144,160,0.08);
+}
+.fx-toggle-btn.fx-off {
+  border-color: rgba(244,63,94,0.35);
+  color: rgba(244,63,94,0.65);
+}
+.fx-toggle-btn.fx-off:hover {
+  border-color: rgba(244,63,94,0.6);
+  color: var(--accent-rose);
+  background: rgba(244,63,94,0.07);
+}
+.fx-toggle-btn::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: rgba(10,12,16,0.92);
+  border: 1px solid rgba(139,144,160,0.2);
+  color: var(--text-secondary);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.fx-toggle-btn:hover::after { opacity: 1; }
+.no-fx .fx-toggle-btn { transition: none !important; }
+.no-fx .fx-toggle-btn::after { transition: none !important; }
+
 header {
 position: relative;
 z-index: 10;
@@ -4361,8 +4428,15 @@ list.innerHTML = html || '<div style="color:var(--text-dim);font-size:0.75rem;pa
 
 function toggleMixerItem(name) {
 const idx = mixerSelected.indexOf(name);
-if (idx === -1) mixerSelected.push(name);
-else mixerSelected.splice(idx, 1);
+if (idx === -1) {
+  mixerSelected.push(name);
+  // Auto-clear search so user can type the next substance immediately
+  const searchEl = document.getElementById('mixer-search');
+  searchEl.value = '';
+  searchEl.focus();
+} else {
+  mixerSelected.splice(idx, 1);
+}
 renderMixerList(document.getElementById('mixer-search').value.toLowerCase());
 renderMixerSelected();
 document.getElementById('mixer-result').innerHTML = '';
@@ -4914,6 +4988,8 @@ ${drug.quimica.elementos.map(el => `
 `;
 
 document.getElementById('modal-overlay').classList.add('open');
+const _modalEl = document.querySelector('#modal-overlay .modal');
+if (_modalEl) _modalEl.scrollTop = 0;
 setTimeout(() => animatePips(document.getElementById('m-meta')), 60);
 
 }
@@ -5289,6 +5365,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+
+// ─── FX TOGGLE ───────────────────────────────────────────────────────────────
+let fxEnabled = true;
+function toggleFx() {
+  fxEnabled = !fxEnabled;
+  const html = document.documentElement;
+  const btn = document.getElementById('fx-toggle-btn');
+  if (fxEnabled) {
+    html.classList.remove('no-fx');
+    btn.classList.remove('fx-off');
+    btn.setAttribute('data-tip', 'Efectos ON');
+    btn.textContent = '✦';
+  } else {
+    html.classList.add('no-fx');
+    btn.classList.add('fx-off');
+    btn.setAttribute('data-tip', 'Efectos OFF');
+    btn.textContent = '✧';
+  }
+  try { localStorage.setItem('ciclodex-fx', fxEnabled ? '1' : '0'); } catch(e) {}
+}
+// Restore preference
+try {
+  const saved = localStorage.getItem('ciclodex-fx');
+  if (saved === '0') toggleFx();
+} catch(e) {}
+
 </script>
 
 
@@ -5316,4 +5418,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
 </div>
 
+
+<!-- FX TOGGLE BUTTON -->
+<button class="fx-toggle-btn" id="fx-toggle-btn" onclick="toggleFx()" data-tip="Efectos visuales ON" title="Efectos visuales">✦</button>
 </html>
