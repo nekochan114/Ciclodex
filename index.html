@@ -5282,7 +5282,11 @@ function toggleMute() {
 }
 document.addEventListener('DOMContentLoaded', () => {
   bgm = document.getElementById('bgm');
-  if (bgm) { bgm.volume = 0.4; document.getElementById('music-wrap').classList.add('paused'); }
+  if (bgm) {
+    bgm.volume = 0.4;
+    document.getElementById('music-wrap').classList.add('paused');
+    bgm.load();
+  }
 });
 
 </script>
@@ -5302,7 +5306,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <input type="range" class="music-vol-slider" id="music-vol" min="0" max="100" value="40" oninput="setVolume(this.value)">
     </div>
   </div>
-  <audio id="bgm" loop src="hiphop.mp3"></audio>
+  <audio id="bgm" loop src="hiphop.mp3" preload="auto"></audio>
 </div>
 
 <!-- LANGUAGE SELECTOR -->
